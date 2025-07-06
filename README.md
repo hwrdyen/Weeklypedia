@@ -1,8 +1,8 @@
-# 📝 Weekly Update Assistant
+# 📝 Weeklypedia
 
-## 🚀 What is Weekly Update Assistant?
+## 🚀 What is Weeklypedia?
 
-**Weekly Update Assistant** is a smart web application that automatically generates professional weekly progress emails for software engineers and technical professionals. Instead of spending time manually writing updates for managers and stakeholders, you can connect your GitHub repository, let AI analyze your work, and generate a polished email in plain language that non-technical audiences can easily understand.
+**Weeklypedia** is a smart web application that automatically generates professional weekly progress emails for software engineers and technical professionals. Instead of spending time manually writing updates for stakeholders, you can connect your GitHub repository, let AI analyze your work, and generate a polished email in plain language that audiences can easily understand.
 
 ## ✨ Key Features
 
@@ -103,8 +103,8 @@
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/yourusername/WeeklyUpdateAssistant.git
-   cd WeeklyUpdateAssistant/weekly-update-assistant
+   git clone https://github.com/hwrdyen/Weeklypedia
+   cd Weeklypedia/weekly-update-assistant
    ```
 
 2. **Install dependencies**
