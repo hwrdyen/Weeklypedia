@@ -1,7 +1,5 @@
 # 📝 Weekly Update Assistant
 
-![Weekly Update Assistant Logo](weekly-update-assistant/public/weeklypedia-logo.svg)
-
 ## 🚀 What is Weekly Update Assistant?
 
 **Weekly Update Assistant** is a smart web application that automatically generates professional weekly progress emails for software engineers and technical professionals. Instead of spending time manually writing updates for managers and stakeholders, you can connect your GitHub repository, let AI analyze your work, and generate a polished email in plain language that non-technical audiences can easily understand.
