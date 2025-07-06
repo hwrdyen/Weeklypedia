@@ -1,0 +1,180 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 15 23 42; /* slate-900 */
+    --foreground: 248 250 252; /* slate-50 */
+    --card: 30 41 59; /* slate-800/30 with glassmorphism */
+    --card-foreground: 248 250 252; /* slate-50 */
+    --popover: 30 41 59; /* slate-800 */
+    --popover-foreground: 248 250 252; /* slate-50 */
+    --primary: 139 92 246; /* violet-500 */
+    --primary-foreground: 255 255 255; /* white */
+    --secondary: 71 85 105; /* slate-600 */
+    --secondary-foreground: 248 250 252; /* slate-50 */
+    --muted: 51 65 85; /* slate-700 */
+    --muted-foreground: 148 163 184; /* slate-400 */
+    --accent: 139 92 246; /* violet-500 */
+    --accent-foreground: 255 255 255; /* white */
+    --destructive: 239 68 68; /* red-500 */
+    --destructive-foreground: 255 255 255; /* white */
+    --border: 71 85 105; /* slate-600/50 */
+    --input: 71 85 105; /* slate-600 */
+    --ring: 139 92 246; /* violet-500 */
+    --radius: 0.75rem;
+    --font-inter: Inter, system-ui, -apple-system, sans-serif;
+    
+    /* Glassmorphism variables */
+    --glass-bg: 30 41 59; /* slate-800/30 */
+    --glass-border: 71 85 105; /* slate-600/50 */
+    --glass-backdrop: 15 23 42; /* slate-900/70 */
+  }
+
+  .dark {
+    --background: 15 23 42; /* slate-900 */
+    --foreground: 248 250 252; /* slate-50 */
+    --card: 30 41 59; /* slate-800/30 */
+    --card-foreground: 248 250 252; /* slate-50 */
+    --popover: 30 41 59; /* slate-800 */
+    --popover-foreground: 248 250 252; /* slate-50 */
+    --primary: 139 92 246; /* violet-500 */
+    --primary-foreground: 255 255 255; /* white */
+    --secondary: 71 85 105; /* slate-600 */
+    --secondary-foreground: 248 250 252; /* slate-50 */
+    --muted: 51 65 85; /* slate-700 */
+    --muted-foreground: 148 163 184; /* slate-400 */
+    --accent: 139 92 246; /* violet-500 */
+    --accent-foreground: 255 255 255; /* white */
+    --destructive: 239 68 68; /* red-500 */
+    --destructive-foreground: 255 255 255; /* white */
+    --border: 71 85 105; /* slate-600/50 */
+    --input: 71 85 105; /* slate-600 */
+    --ring: 139 92 246; /* violet-500 */
+  }
+}
+
+@layer base {
+  * {
+    border-color: rgb(var(--border));
+  }
+  
+  body {
+    background-color: rgb(var(--background));
+    color: rgb(var(--foreground));
+    font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: var(--font-inter);
+    min-height: 100vh;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    color: rgb(var(--foreground));
+  }
+  
+  h1 {
+    font-size: 2.25rem; /* 36px */
+    line-height: 2.5rem;
+  }
+  
+  h2 {
+    font-size: 1.875rem; /* 30px */
+    line-height: 2.25rem;
+  }
+  
+  h3 {
+    font-size: 1.5rem; /* 24px */
+    line-height: 2rem;
+  }
+}
+
+@layer components {
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(100 116 139) transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgb(100 116 139);
+    border-radius: 3px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(148 163 184);
+  }
+}
+
+/* Glassmorphism utilities */
+@layer utilities {
+  .glass-card {
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    background-color: rgb(var(--glass-bg) / 0.3);
+    border: 1px solid rgb(var(--glass-border) / 0.5);
+    border-radius: 1rem;
+    box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  }
+  
+  .glass-input {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    background-color: rgb(51 65 85 / 0.5); /* slate-700/50 */
+    border: 1px solid rgb(71 85 105); /* slate-600 */
+    color: rgb(248 250 252); /* slate-50 */
+    transition: all 0.2s ease;
+  }
+  
+  .glass-input:focus {
+    border-color: rgb(139 92 246); /* violet-500 */
+    box-shadow: 0 0 0 3px rgb(139 92 246 / 0.2); /* violet-500/20 */
+  }
+  
+  .glass-input::placeholder {
+    color: rgb(148 163 184); /* slate-400 */
+  }
+  
+  .gradient-button {
+    background: linear-gradient(to right, rgb(139 92 246), rgb(147 51 234)); /* violet-500 to purple-600 */
+    transition: all 0.2s ease;
+    transform: translateY(0);
+  }
+  
+  .gradient-button:hover {
+    background: linear-gradient(to right, rgb(124 58 237), rgb(126 34 206)); /* violet-600 to purple-700 */
+    transform: translateY(-1px) scale(1.02);
+    box-shadow: 0 20px 25px -5px rgb(139 92 246 / 0.25);
+  }
+}
+
+/* Background overlay utilities */
+.bg-overlay {
+  background-color: rgb(15 23 42 / 0.7); /* slate-900/70 */
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* Glassmorphism effects */
+.glass {
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  background-color: rgba(17, 25, 40, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.125);
+}
+
+/* Smooth transitions for all interactive elements */
+* {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow,
+    transform, filter, backdrop-filter;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
