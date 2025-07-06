@@ -15,6 +15,7 @@ import {
 import { AchievementItem } from "./AchievementItem";
 import { AlternativeGitHubAuth } from "./AlternativeGitHubAuth";
 import { FileUploadDropzone } from "./FileUploadDropzone";
+import { EmailPreviewDisplay } from "./EmailPreviewDisplay";
 import {
   Calendar,
   FileText,
@@ -536,7 +537,7 @@ export function ApplicationView({ user }: ApplicationViewProps) {
                   edits
                 </p>
               </div>
-              <div className="space-y-4">
+              <div className="space-y-4 max-h-80 overflow-y-auto custom-scrollbar pr-2">
                 {achievements?.map((achievement) => (
                   <AchievementItem
                     key={achievement.id}
@@ -611,42 +612,11 @@ export function ApplicationView({ user }: ApplicationViewProps) {
 
       case "preview":
         return (
-          <div className="glass-card p-8">
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold text-white mb-2">
-                Your Weekly Update Email
-              </h2>
-              <p className="text-slate-300">
-                Review your generated email and copy it to your clipboard
-              </p>
-            </div>
-            <div className="space-y-6">
-              <div className="bg-slate-900/50 rounded-xl p-6 border border-slate-600/30 max-h-96 overflow-y-auto custom-scrollbar">
-                <pre className="whitespace-pre-wrap text-sm text-slate-200 font-mono leading-relaxed">
-                  {emailContent}
-                </pre>
-              </div>
-
-              <div className="flex justify-between">
-                <Button
-                  variant="outline"
-                  onClick={() => setActiveStep("review")}
-                  className="bg-slate-700/50 border-slate-600 text-slate-200 hover:bg-slate-600/50 hover:border-slate-500"
-                >
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back to Review
-                </Button>
-                <Button
-                  onClick={handleCopyEmail}
-                  className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-3 px-6 rounded-xl border-0"
-                  size="lg"
-                >
-                  <Copy className="mr-2 h-4 w-4" />
-                  Copy to Clipboard
-                </Button>
-              </div>
-            </div>
-          </div>
+          <EmailPreviewDisplay
+            emailContent={emailContent}
+            onBack={() => setActiveStep("review")}
+            onCopy={handleCopyEmail}
+          />
         );
 
       default:
