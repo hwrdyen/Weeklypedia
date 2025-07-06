@@ -3,6 +3,8 @@
 import { Button } from "@/components/ui/button";
 import { Github, LogOut } from "lucide-react";
 import { signInWithGitHub, signOut } from "@/lib/supabase";
+import Link from "next/link";
+import Image from "next/image";
 
 interface User {
   id: string;
@@ -44,11 +46,19 @@ export function Header({ user }: HeaderProps) {
   return (
     <header className="bg-card border-b border-border shadow-sm">
       <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-8">
-        <div>
-          <h1 className="text-xl font-semibold text-foreground">
-            Weekly Update Assistant
-          </h1>
-        </div>
+        <Link
+          href="/"
+          className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
+        >
+          <Image
+            src="/weeklypedia-logo.svg"
+            alt="Weeklypedia Logo"
+            width={32}
+            height={32}
+            className="text-foreground"
+          />
+          <h1 className="text-xl font-semibold text-foreground">Weeklypedia</h1>
+        </Link>
 
         <div>
           {user ? (

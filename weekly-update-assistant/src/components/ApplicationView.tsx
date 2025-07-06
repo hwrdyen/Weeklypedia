@@ -344,9 +344,6 @@ export function ApplicationView({ user }: ApplicationViewProps) {
                           {step.description}
                         </div>
                       </div>
-                      <div className="flex-shrink-0">
-                        <span className="text-sm font-medium">{index + 1}</span>
-                      </div>
                     </div>
                   </button>
                 );
@@ -360,7 +357,7 @@ export function ApplicationView({ user }: ApplicationViewProps) {
               <Github className="h-5 w-5 text-primary" />
               <h3 className="text-white font-semibold">GitHub Access</h3>
             </div>
-            <p className="text-slate-400 text-sm mb-4">
+            <p className="text-slate-400 text-sm mb-2">
               Alternative authentication method if needed
             </p>
             <AlternativeGitHubAuth />

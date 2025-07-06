@@ -12,13 +12,11 @@ export function AlternativeGitHubAuth() {
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-sm font-medium text-gray-900 mb-3">GitHub Token</h3>
         <div className="space-y-2">
           <Button
             onClick={() => setShowTokenInput(!showTokenInput)}
-            variant="outline"
-            size="sm"
-            className="w-full justify-start border-gray-300 text-gray-700 hover:bg-gray-50"
+            className="gradient-button text-white font-semibold py-3 px-4 rounded-xl border-0 w-full justify-center"
+            size="lg"
           >
             <Key className="h-4 w-4 mr-2" />
             {showTokenInput ? "Hide Token Input" : "Add Personal Token"}
@@ -27,17 +25,17 @@ export function AlternativeGitHubAuth() {
       </div>
 
       {showTokenInput && (
-        <div className="space-y-3 p-3 bg-gray-50 rounded-lg">
-          <p className="text-xs text-gray-600">
+        <div className="space-y-3 p-4 bg-slate-800/30 border border-slate-700/50 rounded-xl backdrop-blur-xl">
+          <p className="text-sm text-slate-300">
             Enter your GitHub Personal Access Token:
           </p>
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Input
               type="password"
               value={token}
               onChange={(e) => setToken(e.target.value)}
               placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
-              className="text-xs border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+              className="glass-input"
             />
             <Button
               onClick={() => {
@@ -47,13 +45,13 @@ export function AlternativeGitHubAuth() {
                 }
               }}
               disabled={!token}
+              className="gradient-button text-white font-semibold py-2 px-4 rounded-xl border-0 w-full"
               size="sm"
-              className="w-full bg-blue-500 hover:bg-blue-600 text-white text-xs"
             >
               Save Token
             </Button>
           </div>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-slate-400">
             Create a token at github.com/settings/tokens with &apos;repo&apos;
             scope
           </p>

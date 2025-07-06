@@ -13,7 +13,7 @@ export function SignInView() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
+    <div className="h-[calc(100vh-4rem-1px)] relative overflow-hidden">
       {/* Background Image with Overlay */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
@@ -25,7 +25,7 @@ export function SignInView() {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
+      <div className="relative z-10 h-full flex items-center justify-center p-4">
         <div className="w-full max-w-md">
           {/* Glassmorphism Card */}
           <div className="backdrop-blur-xl bg-slate-800/30 border border-slate-700/50 rounded-2xl p-8 shadow-2xl">

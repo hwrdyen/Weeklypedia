@@ -9,9 +9,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Weekly Update Assistant",
+  title: "Weeklypedia",
   description:
-    "Generate professional weekly update emails from your GitHub activity",
+    "Generate professional weekly update emails from your GitHub activity with Weeklypedia",
 };
 
 export default function RootLayout({
