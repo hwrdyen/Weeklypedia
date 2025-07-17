@@ -24,6 +24,7 @@ import {
   Copy,
   Loader2,
   Plus,
+  Minus,
   Settings,
   Eye,
   ArrowRight,
@@ -71,7 +72,7 @@ export function ApplicationView({ user }: ApplicationViewProps) {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [repoUrl, setRepoUrl] = useState("");
-  const [prUrls, setPrUrls] = useState("");
+  const [prUrls, setPrUrls] = useState<string[]>([""]);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
 
   // Generated data
@@ -148,7 +149,7 @@ export function ApplicationView({ user }: ApplicationViewProps) {
     info("Starting GitHub data analysis...", "Analysis");
     setLoading(true);
     try {
-      const prUrlList = prUrls.split("\n").filter((url) => url.trim());
+      const prUrlList = prUrls.filter((url) => url.trim());
 
       // Separate PDF files from text content
       const pdfFiles = uploadedFiles.filter(
@@ -346,12 +347,28 @@ export function ApplicationView({ user }: ApplicationViewProps) {
     setAchievements(achievements?.filter((a) => a.id !== id) || []);
   };
 
+  const addPrUrl = () => {
+    setPrUrls([...prUrls, ""]);
+  };
+
+  const removePrUrl = (index: number) => {
+    if (prUrls.length > 1) {
+      setPrUrls(prUrls.filter((_, i) => i !== index));
+    }
+  };
+
+  const updatePrUrl = (index: number, value: string) => {
+    const newPrUrls = [...prUrls];
+    newPrUrls[index] = value;
+    setPrUrls(newPrUrls);
+  };
+
   const resetToBasicSetup = () => {
     // Reset all form data
     setStartDate("");
     setEndDate("");
     setRepoUrl("");
-    setPrUrls("");
+    setPrUrls([""]);
     setUploadedFiles([]);
     setAchievements([]);
     setEmailContent("");
@@ -580,20 +597,55 @@ export function ApplicationView({ user }: ApplicationViewProps) {
             </div>
             <div className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="prUrls" className="text-slate-200">
+                <Label className="text-slate-200">
                   Pull Request URLs (optional)
                 </Label>
-                <textarea
-                  id="prUrls"
-                  placeholder="https://github.com/username/repo/pull/123&#10;https://github.com/username/repo/pull/456"
-                  value={prUrls}
-                  onChange={(e) => setPrUrls(e.target.value)}
-                  rows={4}
-                  className="glass-input resize-none"
-                />
+                <div className="space-y-3">
+                  {prUrls.map((url, index) => (
+                    <div key={index} className="flex items-center space-x-2">
+                      <Input
+                        placeholder="https://github.com/username/repo/pull/123"
+                        value={url}
+                        onChange={(e) => updatePrUrl(index, e.target.value)}
+                        className="glass-input flex-1"
+                      />
+                      {index === 0 ? (
+                        <Button
+                          type="button"
+                          onClick={addPrUrl}
+                          variant="outline"
+                          size="sm"
+                          className="bg-slate-700/50 border-slate-600 text-slate-200 hover:bg-slate-600/50 hover:border-slate-500 px-3"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      ) : (
+                        <div className="flex space-x-1">
+                          <Button
+                            type="button"
+                            onClick={() => removePrUrl(index)}
+                            variant="outline"
+                            size="sm"
+                            className="bg-red-500/20 border-red-500/30 text-red-300 hover:bg-red-500/30 hover:border-red-500/50 px-3"
+                          >
+                            <Minus className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            onClick={addPrUrl}
+                            variant="outline"
+                            size="sm"
+                            className="bg-slate-700/50 border-slate-600 text-slate-200 hover:bg-slate-600/50 hover:border-slate-500 px-3"
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
                 <p className="text-slate-400 text-sm">
-                  Add one URL per line for specific pull requests you want to
-                  highlight
+                  Add specific pull request URLs you want to highlight
                 </p>
               </div>
               <div className="space-y-2">
