@@ -284,7 +284,12 @@ export function ApplicationView({ user }: ApplicationViewProps) {
       const newId = Date.now().toString();
       setAchievements([
         ...(achievements || []),
-        { id: newId, text: newAchievement.trim(), selected: true },
+        {
+          id: newId,
+          text: newAchievement.trim(),
+          selected: true,
+          source: "manual",
+        },
       ]);
       setNewAchievement("");
     }
@@ -511,10 +516,7 @@ export function ApplicationView({ user }: ApplicationViewProps) {
                 <Label className="text-slate-200">
                   Upload Files (optional)
                 </Label>
-                <FileUploadDropzone
-                  onFilesChange={setUploadedFiles}
-                  files={uploadedFiles}
-                />
+                <FileUploadDropzone onFilesChange={setUploadedFiles} />
               </div>
               <div className="flex justify-between">
                 <Button

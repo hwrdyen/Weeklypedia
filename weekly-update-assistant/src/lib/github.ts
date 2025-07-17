@@ -22,16 +22,18 @@ interface GitHubPR {
   merged_at: string | null;
 }
 
+export interface GitHubData {
+  commits: GitHubCommit[];
+  pullRequests: GitHubPR[];
+}
+
 export async function fetchGitHubData(
   accessToken: string,
   repoUrl: string,
   startDate: string,
   endDate: string,
   specificPRUrls?: string[]
-): Promise<{
-  commits: GitHubCommit[];
-  pullRequests: GitHubPR[];
-}> {
+): Promise<GitHubData> {
   const octokit = new Octokit({
     auth: accessToken,
   });
@@ -66,7 +68,7 @@ export async function fetchGitHubData(
 
   // If specific PR URLs are provided, fetch those as well
   if (specificPRUrls && specificPRUrls.length > 0) {
-    const specificPRs: GitHubPR[] = [];
+    const specificPRs: any[] = [];
 
     for (const url of specificPRUrls) {
       const prNumber = extractPRNumber(url);
@@ -77,7 +79,7 @@ export async function fetchGitHubData(
             repo,
             pull_number: prNumber,
           });
-          specificPRs.push(pr as GitHubPR);
+          specificPRs.push(pr);
         } catch (error) {
           console.error(`Failed to fetch PR ${prNumber}:`, error);
         }
@@ -85,7 +87,7 @@ export async function fetchGitHubData(
     }
 
     // Merge specific PRs with date-filtered PRs (avoid duplicates)
-    const allPRNumbers = new Set(pullRequests.map((pr) => pr.number));
+    const allPRNumbers = new Set(pullRequests.map((pr: any) => pr.number));
     specificPRs.forEach((pr) => {
       if (!allPRNumbers.has(pr.number)) {
         pullRequests.push(pr);
