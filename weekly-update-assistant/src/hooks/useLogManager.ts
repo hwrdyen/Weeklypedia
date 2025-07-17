@@ -1,9 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { LogMessage } from "@/components/AIAgentLogBubble";
 
 export function useLogManager() {
   const [logs, setLogs] = useState<LogMessage[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isPolling, setIsPolling] = useState(false);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Fetch logs from server
   const fetchLogs = async () => {
@@ -33,19 +35,42 @@ export function useLogManager() {
     }
   };
 
-  // Poll for new logs every 2 seconds
-  useEffect(() => {
+  // Start polling for logs
+  const startPolling = () => {
+    if (isPolling) return;
+    setIsPolling(true);
     fetchLogs(); // Initial fetch
 
-    const interval = setInterval(fetchLogs, 2000);
-    return () => clearInterval(interval);
+    // Poll every 5 seconds instead of 2 seconds
+    intervalRef.current = setInterval(fetchLogs, 5000);
+  };
+
+  // Stop polling for logs
+  const stopPolling = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    setIsPolling(false);
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
   }, []);
 
   return {
     logs,
     loading,
+    isPolling,
     fetchLogs,
     clearLogs,
+    startPolling,
+    stopPolling,
     // Client-side logging methods (for immediate feedback)
     addLog: (level: LogMessage["level"], message: string, source?: string) => {
       const newLog: LogMessage = {

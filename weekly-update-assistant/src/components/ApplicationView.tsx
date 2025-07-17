@@ -64,7 +64,8 @@ export function ApplicationView({ user }: ApplicationViewProps) {
   const [showLogBubble, setShowLogBubble] = useState(false);
 
   // Log manager
-  const { logs, info, success, warning, error } = useLogManager();
+  const { logs, info, success, warning, error, startPolling, stopPolling } =
+    useLogManager();
 
   // Form data
   const [startDate, setStartDate] = useState("");
@@ -78,6 +79,9 @@ export function ApplicationView({ user }: ApplicationViewProps) {
   const [emailContent, setEmailContent] = useState("");
   const [newAchievement, setNewAchievement] = useState("");
 
+  // Step completion tracking
+  const [contextStepCompleted, setContextStepCompleted] = useState(false);
+
   useEffect(() => {
     // Set default dates (last week)
     const today = new Date();
@@ -88,34 +92,39 @@ export function ApplicationView({ user }: ApplicationViewProps) {
     setEndDate(today.toISOString().split("T")[0]);
   }, []);
 
+  // Control log polling based on bubble visibility
+  useEffect(() => {
+    if (showLogBubble) {
+      startPolling();
+    } else {
+      stopPolling();
+    }
+  }, [showLogBubble, startPolling, stopPolling]);
+
   const steps = [
     {
       id: "basic",
       label: "Basic Setup",
       icon: Calendar,
       description: "Configure your repository and date range",
-      completed: repoUrl && startDate && endDate,
     },
     {
       id: "context",
       label: "Add Context",
       icon: FileText,
       description: "Include additional information (optional)",
-      completed: true, // Always accessible after basic
     },
     {
       id: "review",
       label: "Review",
       icon: Settings,
       description: "Review and customize your achievements",
-      completed: achievements?.length > 0,
     },
     {
       id: "preview",
       label: "Generate",
       icon: Eye,
       description: "Generate and preview your email",
-      completed: emailContent?.length > 0,
     },
   ];
 
@@ -337,15 +346,61 @@ export function ApplicationView({ user }: ApplicationViewProps) {
     setAchievements(achievements?.filter((a) => a.id !== id) || []);
   };
 
+  const resetToBasicSetup = () => {
+    // Reset all form data
+    setStartDate("");
+    setEndDate("");
+    setRepoUrl("");
+    setPrUrls("");
+    setUploadedFiles([]);
+    setAchievements([]);
+    setEmailContent("");
+    setNewAchievement("");
+
+    // Reset step completion states
+    setContextStepCompleted(false);
+
+    // Set default dates (last week)
+    const today = new Date();
+    const lastWeek = new Date(today);
+    lastWeek.setDate(today.getDate() - 7);
+    setStartDate(lastWeek.toISOString().split("T")[0]);
+    setEndDate(today.toISOString().split("T")[0]);
+
+    // Go back to basic setup
+    setActiveStep("basic");
+
+    // Clear logs
+    info("Reset to basic setup", "System");
+  };
+
+  const getStepCompletionStatus = (stepId: string, stepIndex: number) => {
+    const stepOrder = ["basic", "context", "review", "preview"];
+    const currentStepIndex = stepOrder.indexOf(activeStep);
+
+    // A step is completed if we've moved past it in the workflow
+    return stepIndex < currentStepIndex;
+  };
+
   const canProceedToStep = (stepId: string) => {
     switch (stepId) {
       case "basic":
         return true;
       case "context":
-        return repoUrl && startDate && endDate;
+        // Only accessible if we've completed basic setup AND moved to context step
+        return (
+          repoUrl &&
+          startDate &&
+          endDate &&
+          (activeStep === "context" ||
+            activeStep === "review" ||
+            activeStep === "preview")
+        );
       case "review":
+        // Only accessible if we have achievements (after analysis)
         return achievements?.length > 0;
       case "preview":
+        // Only accessible if we have email content
         return emailContent?.length > 0;
       default:
         return false;
@@ -363,7 +418,7 @@ export function ApplicationView({ user }: ApplicationViewProps) {
               {steps.map((step, index) => {
                 const Icon = step.icon;
                 const isActive = activeStep === step.id;
-                const isCompleted = step.completed;
+                const isCompleted = getStepCompletionStatus(step.id, index);
 
                 return (
                   <button
@@ -498,22 +553,13 @@ export function ApplicationView({ user }: ApplicationViewProps) {
                   Back
                 </Button>
                 <Button
-                  onClick={handleAnalyze}
-                  disabled={loading}
+                  onClick={() => setActiveStep("context")}
+                  disabled={!repoUrl || !startDate || !endDate}
                   className="gradient-button text-white font-semibold py-3 px-6 rounded-xl border-0"
                   size="lg"
                 >
-                  {loading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Analyzing...
-                    </>
-                  ) : (
-                    <>
-                      Analyze GitHub Data
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </>
-                  )}
+                  Continue to Add Context
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </div>
             </div>
@@ -566,13 +612,25 @@ export function ApplicationView({ user }: ApplicationViewProps) {
                   Back
                 </Button>
                 <Button
-                  onClick={() => setActiveStep("review")}
-                  disabled={!canProceedToStep("review")}
+                  onClick={async () => {
+                    setContextStepCompleted(true);
+                    await handleAnalyze();
+                  }}
+                  disabled={loading}
                   className="gradient-button text-white font-semibold py-3 px-6 rounded-xl border-0"
                   size="lg"
                 >
-                  Continue to Review
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Analyzing...
+                    </>
+                  ) : (
+                    <>
+                      Continue to Review
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </>
+                  )}
                 </Button>
               </div>
             </div>
@@ -663,6 +721,7 @@ export function ApplicationView({ user }: ApplicationViewProps) {
             emailContent={emailContent}
             onBack={() => setActiveStep("review")}
             onCopy={handleCopyEmail}
+            onReset={resetToBasicSetup}
           />
         );
 

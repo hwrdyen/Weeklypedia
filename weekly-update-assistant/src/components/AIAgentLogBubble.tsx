@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import {
-  MessageSquare,
   X,
   Minimize2,
   Maximize2,
@@ -17,6 +16,7 @@ import {
   Info,
   Loader2,
 } from "lucide-react";
+import Image from "next/image";
 
 export interface LogMessage {
   id: string;
@@ -91,9 +91,16 @@ export function AIAgentLogBubble({
         <Button
           onClick={onToggle}
           size="lg"
-          className="rounded-full h-14 w-14 shadow-lg bg-primary hover:bg-primary/90"
+          className="rounded-full h-16 w-16 shadow-lg bg-primary hover:bg-primary/90 p-0"
         >
-          <MessageSquare className="h-6 w-6" />
+          <div className="relative h-8 w-8">
+            <Image
+              src="/weeklypedia-logo.svg"
+              alt="WeeklyPedia Logo"
+              fill
+              className="object-contain"
+            />
+          </div>
           {isAnalyzing && (
             <div className="absolute -top-1 -right-1">
               <div className="h-3 w-3 bg-red-500 rounded-full animate-pulse" />
@@ -155,7 +162,14 @@ export function AIAgentLogBubble({
           >
             {logs.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <div className="relative h-8 w-8 mx-auto mb-2 opacity-50">
+                  <Image
+                    src="/weeklypedia-logo.svg"
+                    alt="WeeklyPedia Logo"
+                    fill
+                    className="object-contain"
+                  />
+                </div>
                 <p className="text-sm">No logs yet</p>
                 <p className="text-xs">
                   AI agent logs will appear here during analysis

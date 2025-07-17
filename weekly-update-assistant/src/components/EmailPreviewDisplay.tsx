@@ -1,19 +1,21 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Copy, ArrowLeft, CheckCircle } from "lucide-react";
+import { Copy, ArrowLeft, CheckCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface EmailPreviewDisplayProps {
   emailContent: string;
   onBack: () => void;
   onCopy: () => void;
+  onReset: () => void;
 }
 
 export function EmailPreviewDisplay({
   emailContent,
   onBack,
   onCopy,
+  onReset,
 }: EmailPreviewDisplayProps) {
   console.log("🎯 EmailPreviewDisplay rendered with emailContent:", {
     hasContent: !!emailContent,
@@ -107,10 +109,10 @@ export function EmailPreviewDisplay({
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 mt-8">
+            <div className="flex flex-col gap-4 mt-8">
               <Button
                 onClick={handleCopyToClipboard}
-                className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-3 rounded-xl transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-emerald-500/25"
+                className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-3 rounded-xl transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-emerald-500/25"
                 disabled={isTyping}
                 size="lg"
               >
@@ -127,15 +129,27 @@ export function EmailPreviewDisplay({
                 )}
               </Button>
 
-              <Button
-                onClick={onBack}
-                variant="outline"
-                className="flex-1 bg-slate-700/50 border-slate-600 text-slate-200 hover:bg-slate-600/50 hover:border-slate-500 transition-all duration-200 py-3"
-                size="lg"
-              >
-                <ArrowLeft size={18} className="mr-2" />
-                Back to Review
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Button
+                  onClick={onBack}
+                  variant="outline"
+                  className="flex-1 bg-slate-700/50 border-slate-600 text-slate-200 hover:bg-slate-600/50 hover:border-slate-500 transition-all duration-200 py-3"
+                  size="lg"
+                >
+                  <ArrowLeft size={18} className="mr-2" />
+                  Back to Review
+                </Button>
+
+                <Button
+                  onClick={onReset}
+                  variant="outline"
+                  className="flex-1 bg-slate-700/50 border-slate-600 text-slate-200 hover:bg-slate-600/50 hover:border-slate-500 transition-all duration-200 py-3"
+                  size="lg"
+                >
+                  <RefreshCw size={18} className="mr-2" />
+                  Generate New Weekly Update
+                </Button>
+              </div>
             </div>
 
             {/* Statistics */}
