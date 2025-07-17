@@ -16,6 +16,8 @@ import { AchievementItem } from "./AchievementItem";
 import { AlternativeGitHubAuth } from "./AlternativeGitHubAuth";
 import { FileUploadDropzone } from "./FileUploadDropzone";
 import { EmailPreviewDisplay } from "./EmailPreviewDisplay";
+import { AIAgentLogBubble } from "./AIAgentLogBubble";
+import { useLogManager } from "@/hooks/useLogManager";
 import {
   Calendar,
   FileText,
@@ -59,6 +61,10 @@ interface ApplicationViewProps {
 export function ApplicationView({ user }: ApplicationViewProps) {
   const [loading, setLoading] = useState(false);
   const [activeStep, setActiveStep] = useState("basic");
+  const [showLogBubble, setShowLogBubble] = useState(false);
+
+  // Log manager
+  const { logs, info, success, warning, error } = useLogManager();
 
   // Form data
   const [startDate, setStartDate] = useState("");
@@ -128,6 +134,9 @@ export function ApplicationView({ user }: ApplicationViewProps) {
       return;
     }
 
+    // Show log bubble and start logging
+    setShowLogBubble(true);
+    info("Starting GitHub data analysis...", "Analysis");
     setLoading(true);
     try {
       const prUrlList = prUrls.split("\n").filter((url) => url.trim());
@@ -151,6 +160,10 @@ export function ApplicationView({ user }: ApplicationViewProps) {
       // Prepare request - use FormData if we have PDF files, otherwise JSON
       let response;
       if (pdfFiles.length > 0) {
+        info(
+          `Processing ${pdfFiles.length} PDF files for analysis`,
+          "File Processing"
+        );
         console.log(
           `📎 Sending ${pdfFiles.length} PDF files to AI for analysis`
         );
@@ -174,12 +187,14 @@ export function ApplicationView({ user }: ApplicationViewProps) {
           }
         });
 
+        info("Sending PDF files to AI agent for analysis", "AI Agent");
         response = await fetch("/api/analyze", {
           method: "POST",
           body: formData,
         });
       } else {
         // Fallback to JSON for text-only analysis
+        info("Sending text data to AI agent for analysis", "AI Agent");
         response = await fetch("/api/analyze", {
           method: "POST",
           headers: {
@@ -201,10 +216,20 @@ export function ApplicationView({ user }: ApplicationViewProps) {
       }
 
       const data = await response.json();
+      success(
+        `Successfully analyzed ${data.achievements?.length || 0} achievements`,
+        "Analysis"
+      );
       setAchievements(data.achievements || []);
       setActiveStep("review");
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Analysis error:", error);
+      error(
+        `Analysis failed: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+        "Analysis"
+      );
       alert("Failed to analyze GitHub data. Please try again.");
     } finally {
       setLoading(false);
@@ -218,6 +243,12 @@ export function ApplicationView({ user }: ApplicationViewProps) {
       startDate,
       endDate,
     });
+
+    info("Starting email generation...", "Email Generation");
+    info(
+      `Generating email with ${selectedAchievements.length} achievements`,
+      "Email Generation"
+    );
     setLoading(true);
 
     try {
@@ -250,11 +281,18 @@ export function ApplicationView({ user }: ApplicationViewProps) {
       console.log("📧 Email content received:", data.email ? "Yes" : "No");
       console.log("📧 Email content length:", data.email?.length || 0);
 
+      success("Email generated successfully", "Email Generation");
       setEmailContent(data.email);
       console.log("✅ Email content set, switching to preview step");
       setActiveStep("preview");
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("❌ Email generation error:", error);
+      error(
+        `Email generation failed: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+        "Email Generation"
+      );
       alert("Failed to generate email. Please try again.");
     } finally {
       setLoading(false);
@@ -643,6 +681,14 @@ export function ApplicationView({ user }: ApplicationViewProps) {
       <div className="flex-1 p-8">
         <div className="max-w-4xl mx-auto">{renderMainContent()}</div>
       </div>
+
+      {/* AI Agent Log Bubble */}
+      <AIAgentLogBubble
+        isVisible={showLogBubble}
+        onToggle={() => setShowLogBubble(!showLogBubble)}
+        logs={logs}
+        isAnalyzing={loading}
+      />
     </div>
   );
 }

@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchGitHubData } from "@/lib/github";
 import { analyzeGitHubActivity } from "@/lib/ai";
+import { serverLogManager } from "@/lib/serverLogManager";
 
 export async function POST(request: NextRequest) {
   try {
+    serverLogManager.info("Starting GitHub data analysis", "API");
     console.log("=== API /analyze called ===");
 
     // Handle both JSON and FormData
@@ -13,6 +15,10 @@ export async function POST(request: NextRequest) {
     const contentType = request.headers.get("content-type");
 
     if (contentType?.includes("multipart/form-data")) {
+      serverLogManager.info(
+        "Processing multipart form data with PDF files",
+        "API"
+      );
       const formData = await request.formData();
 
       // Extract basic form data
@@ -31,12 +37,17 @@ export async function POST(request: NextRequest) {
       for (const [key, value] of formData.entries()) {
         if (key.startsWith("pdf_") && value instanceof File) {
           pdfFiles.push(value);
+          serverLogManager.info(
+            `Processing PDF file: ${value.name} (${value.size} bytes)`,
+            "File Processing"
+          );
           console.log(
             `📎 PDF file received: ${value.name} (${value.size} bytes)`
           );
         }
       }
     } else {
+      serverLogManager.info("Processing JSON request data", "API");
       body = await request.json();
     }
 
@@ -53,6 +64,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!accessToken || !repoUrl || !startDate || !endDate) {
+      serverLogManager.error("Missing required parameters", "API");
       console.log("❌ Missing required parameters");
       return NextResponse.json(
         { error: "Missing required parameters" },
@@ -61,6 +73,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch GitHub data
+    serverLogManager.info("Fetching GitHub data from repository", "GitHub");
     console.log("🐙 Fetching GitHub data...");
     const githubData = await fetchGitHubData(
       accessToken,
@@ -70,6 +83,12 @@ export async function POST(request: NextRequest) {
       prUrls
     );
 
+    serverLogManager.success(
+      `GitHub data fetched: ${githubData.commits?.length || 0} commits, ${
+        githubData.pullRequests?.length || 0
+      } pull requests`,
+      "GitHub"
+    );
     console.log("✅ GitHub data fetched:", {
       commitsCount: githubData.commits?.length || 0,
       pullRequestsCount: githubData.pullRequests?.length || 0,
@@ -77,6 +96,10 @@ export async function POST(request: NextRequest) {
 
     // Log sample of actual GitHub data
     if (githubData.commits?.length > 0) {
+      serverLogManager.info(
+        `Found ${githubData.commits.length} commits in date range`,
+        "GitHub"
+      );
       console.log(
         "Sample commits:",
         githubData.commits.slice(0, 3).map((c) => ({
@@ -86,10 +109,15 @@ export async function POST(request: NextRequest) {
         }))
       );
     } else {
+      serverLogManager.warning("No commits found in date range", "GitHub");
       console.log("❌ No commits found in date range");
     }
 
     if (githubData.pullRequests?.length > 0) {
+      serverLogManager.info(
+        `Found ${githubData.pullRequests.length} pull requests in date range`,
+        "GitHub"
+      );
       console.log(
         "Sample PRs:",
         githubData.pullRequests.slice(0, 3).map((pr) => ({
@@ -99,6 +127,10 @@ export async function POST(request: NextRequest) {
         }))
       );
     } else {
+      serverLogManager.warning(
+        "No pull requests found in date range",
+        "GitHub"
+      );
       console.log("❌ No pull requests found in date range");
     }
 
@@ -109,6 +141,10 @@ export async function POST(request: NextRequest) {
     const hasNotionContent = notionContent && notionContent.trim().length > 0;
 
     if (!hasCommits && !hasPRs && !hasNotionContent) {
+      serverLogManager.warning(
+        "No data found for analysis - returning informational message",
+        "Analysis"
+      );
       console.log("❌ No data found - returning informational message");
 
       const noDataAchievement = {
@@ -122,6 +158,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Analyze with AI
+    serverLogManager.info("Starting AI analysis of GitHub data", "AI Agent");
     console.log("🤖 Analyzing with AI...");
     console.log(
       `📊 Analysis input: ${githubData.commits?.length || 0} commits, ${
@@ -137,12 +174,24 @@ export async function POST(request: NextRequest) {
       pdfFiles
     );
 
+    serverLogManager.success(
+      `AI analysis complete: ${
+        achievements?.length || 0
+      } achievements generated`,
+      "AI Agent"
+    );
     console.log("✅ AI analysis complete:", {
       achievementsCount: achievements?.length || 0,
     });
 
     return NextResponse.json({ achievements });
   } catch (error) {
+    serverLogManager.error(
+      `Analysis failed: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`,
+      "Analysis"
+    );
     console.error("❌ Analysis error:", error);
     console.error(
       "Error stack:",

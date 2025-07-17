@@ -10,9 +10,10 @@ import {
 import { PromptTemplates } from "./promptTemplates";
 import { Categorizer } from "./categorizer";
 import { Summarizer } from "./summarizer";
-import { NotionProcessor, ProcessedContent } from "./notionProcessor";
+import { NotionProcessor } from "./notionProcessor";
 import { geminiRateLimiter } from "./utils/rateLimiter";
 import { Achievement } from "@/lib/ai";
+import { serverLogManager } from "@/lib/serverLogManager";
 
 export class WeeklyUpdateAIAgent {
   private genAI: GoogleGenerativeAI;
@@ -39,12 +40,18 @@ export class WeeklyUpdateAIAgent {
    */
   async analyzeActivity(input: AIAgentInput): Promise<AIAgentOutput> {
     try {
+      serverLogManager.info("🤖 Starting AI Agent analysis...", "AI Agent");
       console.log("🤖 Starting AI Agent analysis...");
 
       // Step 1: Process all input sources
+      serverLogManager.info("Processing all input sources", "AI Agent");
       const processedActivities = await this.processAllSources(input);
 
       // Step 2: Create comprehensive weekly summary
+      serverLogManager.info(
+        "Creating comprehensive weekly summary",
+        "AI Agent"
+      );
       const weeklySummary = await this.createComprehensiveSummary(
         input,
         processedActivities
@@ -61,9 +68,16 @@ export class WeeklyUpdateAIAgent {
         },
       };
 
+      serverLogManager.success("✅ AI Agent analysis complete", "AI Agent");
       console.log("✅ AI Agent analysis complete");
       return output;
     } catch (error) {
+      serverLogManager.error(
+        `❌ AI Agent analysis failed: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+        "AI Agent"
+      );
       console.error("❌ AI Agent analysis failed:", error);
       throw new Error(
         `AI Agent analysis failed: ${
@@ -81,10 +95,18 @@ export class WeeklyUpdateAIAgent {
     dateRange: string
   ): Promise<string> {
     try {
+      serverLogManager.info(
+        "📧 Generating email content with rate limiting...",
+        "Email Generation"
+      );
       console.log("📧 Generating email content with rate limiting...");
 
       // Check rate limiter before making request
       const stats = geminiRateLimiter.getUsageStats();
+      serverLogManager.info(
+        `📊 Rate limiter stats: ${stats.current}/${stats.max} requests used`,
+        "Rate Limiter"
+      );
       console.log(
         `📊 Email generation - Rate limiter stats: ${stats.current}/${stats.max} requests used`
       );
@@ -96,15 +118,33 @@ export class WeeklyUpdateAIAgent {
 
       // Use rate limiter for the API call
       const result = await geminiRateLimiter.execute(async () => {
+        serverLogManager.info(
+          "Making AI API call for email generation",
+          "AI Agent"
+        );
         const response = await this.model.generateContent(prompt);
         return response.response.text().trim();
       });
 
+      serverLogManager.success(
+        "Email content generated successfully",
+        "Email Generation"
+      );
       return result;
     } catch (error) {
+      serverLogManager.error(
+        `Error generating email content: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+        "Email Generation"
+      );
       console.error("Error generating email content:", error);
 
       // Fallback to basic email generation without AI
+      serverLogManager.warning(
+        "Using fallback email generation",
+        "Email Generation"
+      );
       return this.createBasicEmailFallback(weeklySummary, dateRange);
     }
   }
@@ -147,12 +187,20 @@ Best regards,
     pdfFiles?: File[]
   ): Promise<Achievement[]> {
     try {
+      serverLogManager.info(
+        "🎯 Using optimized single-call analysis to avoid rate limits...",
+        "AI Agent"
+      );
       console.log(
         "🎯 Using optimized single-call analysis to avoid rate limits..."
       );
 
       // Check rate limiter status
       const stats = geminiRateLimiter.getUsageStats();
+      serverLogManager.info(
+        `📊 Rate limiter stats: ${stats.current}/${stats.max} requests used, ${stats.remaining} remaining`,
+        "Rate Limiter"
+      );
       console.log(
         `📊 Rate limiter stats: ${stats.current}/${stats.max} requests used, ${stats.remaining} remaining`
       );
@@ -164,8 +212,18 @@ Best regards,
         pdfFiles
       );
 
+      serverLogManager.success(
+        "Quick analysis completed successfully",
+        "AI Agent"
+      );
       return result;
     } catch (error) {
+      serverLogManager.error(
+        `Quick analysis failed: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+        "AI Agent"
+      );
       console.error("Quick analysis failed:", error);
       throw error;
     }
@@ -180,6 +238,8 @@ Best regards,
     pdfFiles?: File[]
   ): Promise<Achievement[]> {
     try {
+      serverLogManager.info("Preparing input data for AI analysis", "AI Agent");
+
       // Prepare all input data
       const commits =
         githubData.commits?.map((commit: any) => commit.commit.message) || [];
@@ -189,6 +249,11 @@ Best regards,
           const body = pr.body || "";
           return `PR #${pr.number}: ${title}${body ? ` - ${body}` : ""}`;
         }) || [];
+
+      serverLogManager.info(
+        `Prepared ${commits.length} commits and ${pullRequests.length} pull requests for analysis`,
+        "AI Agent"
+      );
 
       // Create comprehensive prompt that does categorization and summarization in one go
       const comprehensivePrompt = `
@@ -238,12 +303,17 @@ Each achievement should be clear, professional, and suitable for sharing with ma
 `;
 
       // Make single rate-limited API call
+      serverLogManager.info(
+        "Making AI API call for comprehensive analysis",
+        "AI Agent"
+      );
       const result = await geminiRateLimiter.execute(async () => {
         const response = await this.model.generateContent(comprehensivePrompt);
         return response.response.text();
       });
 
       // Parse the response
+      serverLogManager.info("Parsing AI response", "AI Agent");
       let cleanedText = result.trim();
       if (cleanedText.startsWith("```json")) {
         cleanedText = cleanedText
@@ -255,6 +325,11 @@ Each achievement should be clear, professional, and suitable for sharing with ma
 
       const achievements = JSON.parse(cleanedText) as string[];
 
+      serverLogManager.success(
+        `Successfully parsed ${achievements.length} achievements from AI response`,
+        "AI Agent"
+      );
+
       // Convert to required format
       return achievements.map((achievement, index) => ({
         id: `ai-optimized-${Date.now()}-${index}`,
@@ -263,9 +338,19 @@ Each achievement should be clear, professional, and suitable for sharing with ma
         source: "github" as const,
       }));
     } catch (error) {
+      serverLogManager.error(
+        `Optimized analysis failed: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+        "AI Agent"
+      );
       console.error("Optimized analysis failed:", error);
 
       // Fallback to basic summary without additional AI calls
+      serverLogManager.warning(
+        "Using fallback achievement generation",
+        "AI Agent"
+      );
       return this.createBasicFallbackAchievements(
         githubData,
         additionalContext
