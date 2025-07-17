@@ -213,9 +213,15 @@ export function ApplicationView({ user }: ApplicationViewProps) {
 
   const handleGenerateEmail = async () => {
     const selectedAchievements = achievements?.filter((a) => a.selected) || [];
+    console.log("🔄 Starting email generation with:", {
+      selectedAchievements,
+      startDate,
+      endDate,
+    });
     setLoading(true);
 
     try {
+      console.log("📤 Making API call to /api/generate-email");
       const response = await fetch("/api/generate-email", {
         method: "POST",
         headers: {
@@ -228,15 +234,27 @@ export function ApplicationView({ user }: ApplicationViewProps) {
         }),
       });
 
+      console.log("📥 API response status:", response.status);
+
       if (!response.ok) {
+        console.error(
+          "❌ API response not ok:",
+          response.status,
+          response.statusText
+        );
         throw new Error("Failed to generate email");
       }
 
       const data = await response.json();
+      console.log("📧 API response data:", data);
+      console.log("📧 Email content received:", data.email ? "Yes" : "No");
+      console.log("📧 Email content length:", data.email?.length || 0);
+
       setEmailContent(data.email);
+      console.log("✅ Email content set, switching to preview step");
       setActiveStep("preview");
     } catch (error) {
-      console.error("Email generation error:", error);
+      console.error("❌ Email generation error:", error);
       alert("Failed to generate email. Please try again.");
     } finally {
       setLoading(false);
@@ -369,6 +387,12 @@ export function ApplicationView({ user }: ApplicationViewProps) {
   };
 
   const renderMainContent = () => {
+    console.log("🎨 renderMainContent called with activeStep:", activeStep);
+    console.log("🎨 emailContent state:", {
+      hasContent: !!emailContent,
+      length: emailContent?.length || 0,
+    });
+
     switch (activeStep) {
       case "basic":
         return (
@@ -408,7 +432,6 @@ export function ApplicationView({ user }: ApplicationViewProps) {
                   />
                 </div>
               </div>
-
               <div className="space-y-2">
                 <Label htmlFor="repoUrl" className="text-slate-200">
                   GitHub Repository URL
@@ -416,82 +439,12 @@ export function ApplicationView({ user }: ApplicationViewProps) {
                 <Input
                   id="repoUrl"
                   type="url"
-                  placeholder="https://github.com/owner/repo"
+                  placeholder="https://github.com/username/repository"
                   value={repoUrl}
                   onChange={(e) => setRepoUrl(e.target.value)}
                   className="glass-input"
                 />
               </div>
-
-              <div className="flex justify-end">
-                <Button
-                  onClick={() => setActiveStep("context")}
-                  disabled={!repoUrl || !startDate || !endDate}
-                  className="gradient-button text-white font-semibold py-3 px-6 rounded-xl border-0"
-                  size="lg"
-                >
-                  Continue to Context
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        );
-
-      case "context":
-        return (
-          <div className="glass-card p-8">
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold text-white mb-2">
-                Additional Context
-              </h2>
-              <p className="text-slate-300">
-                Provide additional information to enhance your weekly update
-                (optional)
-              </p>
-            </div>
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="prUrls" className="text-slate-200">
-                  Specific Pull Request URLs
-                </Label>
-                <p className="text-sm text-slate-400">
-                  One URL per line. If specified, only these PRs will be
-                  analyzed.
-                </p>
-                <Textarea
-                  id="prUrls"
-                  placeholder={`https://github.com/owner/repo/pull/123\nhttps://github.com/owner/repo/pull/456`}
-                  value={prUrls}
-                  onChange={(e) => setPrUrls(e.target.value)}
-                  className="glass-input min-h-[100px]"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-slate-200">
-                  Research Documents & Notes
-                </Label>
-                <p className="text-sm text-slate-400">
-                  Upload documents, research notes, or any additional context
-                  that should be included in your analysis. Supports text files,
-                  markdown, and PDFs.
-                </p>
-                <FileUploadDropzone
-                  onFilesChange={setUploadedFiles}
-                  acceptedTypes={[
-                    ".txt",
-                    ".md",
-                    ".pdf",
-                    ".doc",
-                    ".docx",
-                    ".rtf",
-                  ]}
-                  maxFiles={10}
-                  maxFileSize={5}
-                />
-              </div>
-
               <div className="flex justify-between">
                 <Button
                   variant="outline"
@@ -524,93 +477,147 @@ export function ApplicationView({ user }: ApplicationViewProps) {
           </div>
         );
 
-      case "review":
+      case "context":
         return (
-          <div className="space-y-8">
-            <div className="glass-card p-8">
-              <div className="mb-6">
-                <h2 className="text-2xl font-bold text-white mb-2">
-                  Review Your Achievements
-                </h2>
-                <p className="text-slate-300">
-                  Review your AI-generated achievements and make any necessary
-                  edits
+          <div className="glass-card p-8">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-white mb-2">
+                Add Additional Context
+              </h2>
+              <p className="text-slate-300">
+                Include extra information to provide more context for your
+                achievements
+              </p>
+            </div>
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="prUrls" className="text-slate-200">
+                  Pull Request URLs (optional)
+                </Label>
+                <textarea
+                  id="prUrls"
+                  placeholder="https://github.com/username/repo/pull/123&#10;https://github.com/username/repo/pull/456"
+                  value={prUrls}
+                  onChange={(e) => setPrUrls(e.target.value)}
+                  rows={4}
+                  className="glass-input resize-none"
+                />
+                <p className="text-slate-400 text-sm">
+                  Add one URL per line for specific pull requests you want to
+                  highlight
                 </p>
               </div>
-              <div className="space-y-4 max-h-80 overflow-y-auto custom-scrollbar pr-2">
+              <div className="space-y-2">
+                <Label className="text-slate-200">
+                  Upload Files (optional)
+                </Label>
+                <FileUploadDropzone
+                  onFilesChange={setUploadedFiles}
+                  files={uploadedFiles}
+                />
+              </div>
+              <div className="flex justify-between">
+                <Button
+                  variant="outline"
+                  onClick={() => setActiveStep("basic")}
+                  className="bg-slate-700/50 border-slate-600 text-slate-200 hover:bg-slate-600/50 hover:border-slate-500"
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back
+                </Button>
+                <Button
+                  onClick={() => setActiveStep("review")}
+                  disabled={!canProceedToStep("review")}
+                  className="gradient-button text-white font-semibold py-3 px-6 rounded-xl border-0"
+                  size="lg"
+                >
+                  Continue to Review
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        );
+
+      case "review":
+        return (
+          <div className="glass-card p-8">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-white mb-2">
+                Review Your Achievements
+              </h2>
+              <p className="text-slate-300">
+                Edit, add, or remove achievements before generating your email
+              </p>
+            </div>
+            <div className="space-y-6">
+              <div className="space-y-4">
                 {achievements?.map((achievement) => (
                   <AchievementItem
                     key={achievement.id}
                     achievement={achievement}
-                    onToggle={toggleAchievement}
-                    onUpdate={updateAchievement}
-                    onRemove={removeAchievement}
+                    onToggle={() => toggleAchievement(achievement.id)}
+                    onUpdate={(text) => updateAchievement(achievement.id, text)}
+                    onRemove={() => removeAchievement(achievement.id)}
                   />
-                )) || []}
+                ))}
               </div>
-            </div>
-
-            <div className="glass-card p-8">
-              <div className="mb-6">
-                <h3 className="text-xl font-bold text-white mb-2">
-                  Add Custom Achievement
-                </h3>
-                <p className="text-slate-300">
-                  Add any additional achievements not captured from GitHub
-                </p>
-              </div>
-              <div className="flex space-x-3">
+              <div className="flex space-x-2">
                 <Input
-                  placeholder="Add a custom achievement..."
+                  placeholder="Add a new achievement..."
                   value={newAchievement}
                   onChange={(e) => setNewAchievement(e.target.value)}
-                  className="glass-input flex-1"
+                  className="glass-input"
                   onKeyPress={(e) => e.key === "Enter" && addAchievement()}
                 />
                 <Button
                   onClick={addAchievement}
-                  className="gradient-button text-white font-semibold px-4 rounded-xl border-0"
+                  disabled={!newAchievement.trim()}
+                  className="gradient-button text-white font-semibold py-3 px-6 rounded-xl border-0"
                 >
-                  <Plus className="h-4 w-4" />
+                  Add
                 </Button>
               </div>
-            </div>
-
-            <div className="flex justify-between">
-              <Button
-                variant="outline"
-                onClick={() => setActiveStep("context")}
-                className="bg-slate-700/50 border-slate-600 text-slate-200 hover:bg-slate-600/50 hover:border-slate-500"
-              >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back
-              </Button>
-              <Button
-                onClick={handleGenerateEmail}
-                disabled={
-                  loading ||
-                  (achievements?.filter((a) => a.selected).length || 0) === 0
-                }
-                className="gradient-button text-white font-semibold py-3 px-6 rounded-xl border-0"
-                size="lg"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    Generate Email
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </>
-                )}
-              </Button>
+              <div className="flex justify-between">
+                <Button
+                  variant="outline"
+                  onClick={() => setActiveStep("context")}
+                  className="bg-slate-700/50 border-slate-600 text-slate-200 hover:bg-slate-600/50 hover:border-slate-500"
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back
+                </Button>
+                <Button
+                  onClick={handleGenerateEmail}
+                  disabled={
+                    loading ||
+                    (achievements?.filter((a) => a.selected).length || 0) === 0
+                  }
+                  className="gradient-button text-white font-semibold py-3 px-6 rounded-xl border-0"
+                  size="lg"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      Generate Email
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         );
 
       case "preview":
+        console.log("🎯 Rendering EmailPreviewDisplay with emailContent:", {
+          hasContent: !!emailContent,
+          length: emailContent?.length || 0,
+        });
         return (
           <EmailPreviewDisplay
             emailContent={emailContent}
@@ -620,6 +627,7 @@ export function ApplicationView({ user }: ApplicationViewProps) {
         );
 
       default:
+        console.log("❌ Unknown activeStep:", activeStep);
         return null;
     }
   };

@@ -15,12 +15,29 @@ export function EmailPreviewDisplay({
   onBack,
   onCopy,
 }: EmailPreviewDisplayProps) {
+  console.log("🎯 EmailPreviewDisplay rendered with emailContent:", {
+    hasContent: !!emailContent,
+    contentLength: emailContent?.length || 0,
+    contentPreview: emailContent?.substring(0, 100) + "...",
+  });
+
   const [copied, setCopied] = useState(false);
   const [displayedText, setDisplayedText] = useState("");
   const [isTyping, setIsTyping] = useState(true);
 
   useEffect(() => {
-    if (!emailContent) return;
+    console.log(
+      "🔄 EmailPreviewDisplay useEffect triggered with emailContent:",
+      {
+        hasContent: !!emailContent,
+        contentLength: emailContent?.length || 0,
+      }
+    );
+
+    if (!emailContent) {
+      console.log("❌ No email content provided to EmailPreviewDisplay");
+      return;
+    }
 
     let index = 0;
     setDisplayedText("");
